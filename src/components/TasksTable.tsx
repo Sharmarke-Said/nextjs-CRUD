@@ -17,12 +17,10 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  getAllTasks,
-  updateTask,
-  deleteTask,
-} from "@/app/tasks/actions";
-import { Pencil, Trash } from "lucide-react";
+import { getAllTasks, deleteTask } from "@/lib/actions";
+import { Pencil, Trash, Plus } from "lucide-react";
+import { AddTaskForm } from "./AddTaskForm";
+import { EditTaskForm } from "./EditTaskForm";
 
 type TaskSchema = {
   id: string;
@@ -31,10 +29,11 @@ type TaskSchema = {
   createdAt: string | Date | null;
 };
 
-export default function TableComponent() {
+export default function TasksTable() {
   const [tasks, setTasks] = useState<TaskSchema[]>([]);
   const [editTask, setEditTask] = useState<TaskSchema | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isAddOpen, setIsAddOpen] = useState(false);
   const [deleteTaskId, setDeleteTaskId] = useState<string | null>(
     null
   );
@@ -47,43 +46,33 @@ export default function TableComponent() {
     fetchTasks();
   }, []);
 
+  const refreshTasks = async () => {
+    const updatedTasks = await getAllTasks();
+    if (Array.isArray(updatedTasks)) setTasks(updatedTasks);
+  };
+
   const handleEdit = (task: TaskSchema) => {
     setEditTask(task);
     setIsEditOpen(true);
   };
 
-  const handleUpdate = async () => {
-    if (!editTask) return;
-
-    const response = await updateTask(editTask.id, {
-      name: editTask.name,
-      description: editTask.description,
-    });
-
-    console.log(response);
-    setIsEditOpen(false);
-
-    // Refresh tasks after update
-    const updatedTasks = await getAllTasks();
-    if (Array.isArray(updatedTasks)) setTasks(updatedTasks);
-  };
-
   const handleDelete = async () => {
     if (!deleteTaskId) return;
 
-    const response = await deleteTask(deleteTaskId);
-    console.log(response);
-
+    await deleteTask(deleteTaskId);
     setDeleteTaskId(null);
-
-    // Refresh tasks after delete
-    const updatedTasks = await getAllTasks();
-    if (Array.isArray(updatedTasks)) setTasks(updatedTasks);
+    refreshTasks();
   };
 
   return (
     <div className="border rounded-lg shadow-md p-4">
-      <h2 className="text-xl font-bold mb-4">Tasks List</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-bold">Tasks List</h2>
+        <Button onClick={() => setIsAddOpen(true)}>
+          <Plus className="w-4 h-4 mr-2" /> New Task
+        </Button>
+      </div>
+
       <Table>
         <TableHeader>
           <TableRow>
@@ -132,6 +121,29 @@ export default function TableComponent() {
         </TableBody>
       </Table>
 
+      {/* Add Task Modal */}
+      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Task</DialogTitle>
+          </DialogHeader>
+          <AddTaskForm
+            onSuccess={() => {
+              setIsAddOpen(false); // Close modal
+              refreshTasks(); // Refresh task list
+            }}
+          />
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsAddOpen(false)}
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Edit Task Modal */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent>
@@ -139,40 +151,14 @@ export default function TableComponent() {
             <DialogTitle>Edit Task</DialogTitle>
           </DialogHeader>
           {editTask && (
-            <div className="flex flex-col gap-4">
-              <input
-                className="border p-2 rounded"
-                value={editTask.name}
-                onChange={(e) =>
-                  setEditTask(
-                    (prev) =>
-                      prev && { ...prev, name: e.target.value }
-                  )
-                }
-                placeholder="Task Name"
-              />
-              <input
-                className="border p-2 rounded"
-                value={editTask.description}
-                onChange={(e) =>
-                  setEditTask(
-                    (prev) =>
-                      prev && { ...prev, description: e.target.value }
-                  )
-                }
-                placeholder="Task Description"
-              />
-            </div>
+            <EditTaskForm
+              task={editTask}
+              onSuccess={() => {
+                setIsEditOpen(false);
+                refreshTasks();
+              }}
+            />
           )}
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsEditOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleUpdate}>Update</Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 

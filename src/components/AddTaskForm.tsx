@@ -13,10 +13,14 @@ import { z } from "zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { createTaskSchema } from "../app/tasks/schemas";
-import { addTask } from "../app/tasks/actions";
+import { createTaskSchema } from "../lib/schemas";
+import { addTask } from "../lib/actions";
 
-export function AddTaskForm() {
+export function AddTaskForm({
+  onSuccess,
+}: {
+  onSuccess: () => void;
+}) {
   const [error, setError] = useState<string>();
   const form = useForm<z.infer<typeof createTaskSchema>>({
     defaultValues: {
@@ -25,9 +29,18 @@ export function AddTaskForm() {
     },
   });
 
+  // async function onSubmit(data: z.infer<typeof createTaskSchema>) {
+  //   const error = await addTask(data);
+  //   setError(error);
+  // }
   async function onSubmit(data: z.infer<typeof createTaskSchema>) {
     const error = await addTask(data);
-    setError(error);
+    if (!error) {
+      form.reset(); // Reset form fields after successful submission
+      onSuccess(); // Close the modal and refresh tasks
+    } else {
+      setError(error);
+    }
   }
 
   return (
