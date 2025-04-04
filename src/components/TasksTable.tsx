@@ -21,11 +21,13 @@ import { getAllTasks, deleteTask } from "@/lib/actions";
 import { Pencil, Trash, Plus } from "lucide-react";
 import { AddTaskForm } from "./AddTaskForm";
 import { EditTaskForm } from "./EditTaskForm";
+import { StatusBadge } from "./StatusBadge";
 
 type TaskSchema = {
   id: string;
   name: string;
   description: string;
+  status: "todo" | "pending" | "in_progress" | "completed";
   createdAt: string | Date | null;
 };
 
@@ -78,6 +80,7 @@ export default function TasksTable() {
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Description</TableHead>
+            <TableHead>Status</TableHead>
             <TableHead>Created At</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
@@ -88,6 +91,10 @@ export default function TasksTable() {
               <TableRow key={task.id}>
                 <TableCell>{task.name}</TableCell>
                 <TableCell>{task.description}</TableCell>
+                <TableCell>
+                  <StatusBadge status={task.status} />
+                </TableCell>
+                {/* Format the date to a readable format */}
                 <TableCell>
                   {task.createdAt
                     ? new Date(task.createdAt).toLocaleString()

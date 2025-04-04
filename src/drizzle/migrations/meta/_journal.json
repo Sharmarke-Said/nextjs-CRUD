@@ -15,6 +15,13 @@
       "when": 1743527476723,
       "tag": "0001_lazy_ser_duncan",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1743747866825,
+      "tag": "0002_foamy_triathlon",
+      "breakpoints": true
     }
   ]
 }

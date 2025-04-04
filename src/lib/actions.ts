@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { createTaskSchema } from "./schemas";
+import { createTaskSchema, updateTaskSchema } from "./schemas";
 import { db } from "@/drizzle/db";
 import { TasksTable } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
@@ -42,9 +42,9 @@ export async function getAllTasks() {
 
 export async function updateTask(
   id: string,
-  unsafeData: z.infer<typeof createTaskSchema>
+  unsafeData: z.infer<typeof updateTaskSchema>
 ) {
-  const { success, data } = createTaskSchema.safeParse(unsafeData);
+  const { success, data } = updateTaskSchema.safeParse(unsafeData);
   if (!success) return "Unable to update task";
 
   try {
